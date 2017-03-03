@@ -1,13 +1,11 @@
 package Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 public class SocketHandler implements Runnable{
     //Define username variable
-    String username;
+    String username = "test";
 
     //Define local running variable
     private volatile boolean running = true;
@@ -17,8 +15,8 @@ public class SocketHandler implements Runnable{
     private Socket socket;
 
     //Define data streams
-    private DataInputStream in;
-    private DataOutputStream out;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
 
     SocketHandler(ServerCore serverProcess, Socket clientSocket) {
         //Initialize dependency variables
@@ -31,10 +29,10 @@ public class SocketHandler implements Runnable{
         openStreams();
 
         //Request a username
-        requestUsername();
+        //requestUsername();
         if (username != null) {
             System.out.println("[" + serverProcess.getClientIndex(this) + "] " + username + " connected...");
-            serverProcess.broadcastToAllExceptSender(this,username + " connected...");
+            serverProcess.broadcastToAllExceptSender(this, new Message(username, " Connected..."));
         }
 
         //Listen for incoming data
@@ -44,8 +42,8 @@ public class SocketHandler implements Runnable{
     private void openStreams() {
         try {
             //Initialize data streams
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
             //Catch and output exceptions when opening data streams
             System.err.println("Failed to open data streams...");
@@ -56,6 +54,7 @@ public class SocketHandler implements Runnable{
         }
     }
 
+    /*
     private void requestUsername() {
         //Request and update username
         send("Please enter a username...");
@@ -73,6 +72,7 @@ public class SocketHandler implements Runnable{
             serverProcess.removeClientSocket(this);
         }
     }
+    */
 
     private void listen() {
         while (running) {
@@ -84,18 +84,18 @@ public class SocketHandler implements Runnable{
     private void processIncomingData() {
         try {
             //Try to handle input
-            serverProcess.sendToAllExceptSender(this, in.readUTF());
-        } catch (IOException ignored) {
+            serverProcess.sendToAllExceptSender(this, (Message) in.readObject());
+        } catch (IOException | ClassNotFoundException ignored) {
             //Detect client disconnect
-            if (username != null) serverProcess.broadcastToAllExceptSender(this, username + " disconnected...");
+            if (username != null) serverProcess.broadcastToAllExceptSender(this, new Message(username, " disconnected..."));
             serverProcess.removeClientSocket(this);
         }
     }
 
-    void send(String message) {
+    void send(Message message) {
         try {
             //Try to send message to client
-            out.writeUTF(message);
+            out.writeObject(message);
             out.flush();
         } catch (IOException e) {
             //Catch and output exceptions when sending message

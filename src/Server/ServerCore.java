@@ -10,9 +10,6 @@ public class ServerCore implements Runnable {
     private ServerSocket serverSocket;
     private ArrayList<SocketHandler> clientHandlers = new ArrayList<>();
 
-    //Define running boolean
-    private volatile boolean running = true;
-
     ServerCore(int port) {
         //Start server socket on given port
         startServerSocket(port);
@@ -36,7 +33,7 @@ public class ServerCore implements Runnable {
     }
 
     private void listenIncomingRequests() {
-        while (running) {
+        while (true) {
             try {
                 //Try to handle incoming request
                 addClientSocket(serverSocket.accept());
@@ -69,13 +66,13 @@ public class ServerCore implements Runnable {
         return clientHandlers.indexOf(socketHandler);
     }
 
-    void sendToAllExceptSender(SocketHandler sender, String message) {
+    void sendToAllExceptSender(SocketHandler sender, Message message) {
         //Relay a message to all clients except the sender
         for (SocketHandler handler : clientHandlers)
-            if (handler != sender && handler.username != null) handler.send(sender.username + ": " + message);
+            if (handler != sender && handler.username != null) handler.send(message);
     }
 
-    void broadcastToAllExceptSender(SocketHandler sender, String message) {
+    void broadcastToAllExceptSender(SocketHandler sender, Message message) {
         //Relay message to all clients
         for (SocketHandler handler : clientHandlers)
             if (handler != sender && handler.username != null) handler.send(message);
