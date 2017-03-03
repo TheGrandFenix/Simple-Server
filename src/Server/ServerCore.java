@@ -69,12 +69,12 @@ public class ServerCore implements Runnable {
     void sendToAllExceptSender(SocketHandler sender, Message message) {
         //Relay a message to all clients except the sender
         for (SocketHandler handler : clientHandlers)
-            if (handler != sender && handler.username != null) handler.send(message);
+            if (handler != sender) handler.send(message);
     }
 
     void broadcastToAllExceptSender(SocketHandler sender, Message message) {
         //Relay message to all clients
         for (SocketHandler handler : clientHandlers)
-            if (handler != sender && handler.username != null) handler.send(message);
+            if (handler != sender) handler.send(message);
     }
 }
