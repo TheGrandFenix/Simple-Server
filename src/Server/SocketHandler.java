@@ -4,9 +4,6 @@ import java.io.*;
 import java.net.Socket;
 
 public class SocketHandler implements Runnable{
-    //Define username variable
-    String username = "test";
-
     //Define local running variable
     private volatile boolean running = true;
 
@@ -28,13 +25,6 @@ public class SocketHandler implements Runnable{
         //Open data streams
         openStreams();
 
-        //Request a username
-        //requestUsername();
-        if (username != null) {
-            System.out.println("[" + serverProcess.getClientIndex(this) + "] " + username + " connected...");
-            serverProcess.broadcastToAllExceptSender(this, new Message(username, " Connected..."));
-        }
-
         //Listen for incoming data
         listen();
     }
@@ -54,26 +44,6 @@ public class SocketHandler implements Runnable{
         }
     }
 
-    /*
-    private void requestUsername() {
-        //Request and update username
-        send("Please enter a username...");
-        updateUsername();
-        send("Username set to \"" + username + "\", proceed to chat...");
-    }
-
-    private void updateUsername() {
-        try {
-            //Try to read username from input stream
-            username = in.readUTF();
-        } catch (IOException e) {
-            //Catch and output exceptions when updating username
-            System.err.println("Failed to read username...");
-            serverProcess.removeClientSocket(this);
-        }
-    }
-    */
-
     private void listen() {
         while (running) {
             //Listen for incoming data
@@ -87,7 +57,6 @@ public class SocketHandler implements Runnable{
             serverProcess.sendToAllExceptSender(this, (Message) in.readObject());
         } catch (IOException | ClassNotFoundException ignored) {
             //Detect client disconnect
-            if (username != null) serverProcess.broadcastToAllExceptSender(this, new Message(username, " disconnected..."));
             serverProcess.removeClientSocket(this);
         }
     }
@@ -99,7 +68,7 @@ public class SocketHandler implements Runnable{
             out.flush();
         } catch (IOException e) {
             //Catch and output exceptions when sending message
-            System.err.println("Failed to send message to client " + serverProcess.getClientIndex(this) + "[" + username + "]" + "...");
+            System.err.println("Failed to send message to client " + serverProcess.getClientIndex(this) + "...");
             e.printStackTrace();
 
             //Terminate client in case of error
@@ -114,7 +83,7 @@ public class SocketHandler implements Runnable{
             out.close();
         } catch (IOException e) {
             //Catch and output exceptions when closing streams
-            System.err.println("Failed to close streams for client " + serverProcess.getClientIndex(this) + " [" + username + "]" + "...");
+            System.err.println("Failed to close streams for client " + serverProcess.getClientIndex(this) + "...");
             e.printStackTrace();
         }
     }
@@ -125,7 +94,7 @@ public class SocketHandler implements Runnable{
             socket.close();
         } catch (IOException e) {
             //Catch and output exceptions when closing socket
-            System.err.println("Failed to close streams for client " + serverProcess.getClientIndex(this) + " [" + username + "]" + "...");
+            System.err.println("Failed to close streams for client " + serverProcess.getClientIndex(this) + "...");
             e.printStackTrace();
         }
     }
@@ -135,7 +104,7 @@ public class SocketHandler implements Runnable{
         running = false;
         closeStreams();
         closeSocket();
-        if (username!=null) System.out.println("[" + serverProcess.getClientIndex(this) + "] " + username + " disconnected...");
+        System.out.println(serverProcess.getClientIndex(this) + " disconnected...");
     }
 
 }
